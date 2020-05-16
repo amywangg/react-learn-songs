@@ -1,0 +1,70 @@
+Redux Cycle 
+Action Creator => Action => dispatch => Reducers => State
+
+ANALOGY - Insurance Company
+Policy: customer holds a 'policy', if bad stuff happens to them we pay them
+Claim: Customer had something bad happen to them, we need to pay them
+
+Customer (wants new policy)=> form => form reciever =>
+=> form => Claims History: stores a lsit of all claims ever made
+=> form => Policies: stores a list of who has a policy with company
+=> form => Accounting: stores a big bag of cash, we pay people from this
+
+Policies Dept: adds person from the form to list of customers with policies
+Management team => asks Policies at any time for the list of who has policies
+- INSTEAD: store the list of policies in central repository not [department data] in department
+
+Department Data: Claims History, Policies, Accounting lists
+
+Form Receiver takes form from client AND list from the Department Data to hand off to Policies
+- policies will take both items, update the department data and send it back to central repository
+
+Form -> Claim {Type}, Name & Claim Amount {Payload} 
+3 types of forms: Create Policy, Create Claim, Delete Policy
+- each form has different payload & types
+
+CLAIMS HISTORY:
+form receiver gets form to receive new claim & Claim History's Department Data
+=> claims history: takes the form, updates the data on Department Data, sends back to centralized store
+form -> is the form a claim?
+Yes: pull {Payload} part from the claim, dump to Department Data, send back to centralized store
+No: dont care, dump the list of claims back to center unchanged
+
+ACCOUNTING:
+form receiver gets form to receive new Claim & Accounting's Department Data
+form -> is the form a claim? 
+Yes: Pull {Payload} let's say $100 in bag-> how much do they need? $20? take $20 out of bag => $80
+No: Are they signing up for a policy?
+    Yes: Put money in company's bag => $120
+    No: Don't care, return bag of money unchanged => $100
+
+POLICIES:
+form receiver gets form to receive new Claim & Policies' Department Data
+form -> is the form trying to create or end a policy?
+No: Then don't care, dump lst of names back unchanged
+Yes: 
+    End a policy? find their name on list and take it off
+    Start a policy? Add their name to the list
+        Return the changed list back to centralized store
+
+HOW DOES IT RELATE TO REDUX?
+Action Creator        => Action   => dispatch      => Reducers    => State
+Person Drops off Form => the form => form receiver => Departments => compiled department data
+
+Action Creator: function that returns a plain JS object
+Action: Describe some change to the data 
+- object has type property and payload property
+Dispatch: make copies of the object of action
+Reducer: a function that is responsible for taking in an action, processes/updates it, and moves it to a centralized area
+State: central repository of information 
+
+REDUX CYCLE IN DEPTH:
+ACTION CREATOR: to change the state of our app we call this
+produces => ACTION(obj): describes how we want to change data 
+gets fed => DISPATCH: makes copies of the action
+forwards action => REDUCERS: run & process/modify actions & returns data
+creates new => STATE(obj): wait till state needs to update again 
+
+combineReducers() => wires up all the reducer functions to one place
+cannot get direct access to state to modify
+
